@@ -1,4 +1,4 @@
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -25,5 +25,46 @@ public class NetworkingServer {
         }
         
         System.out.println("ServerSocket is created " + server);
+
+        // Lyssna efter klienten
+        while(true) {
+
+            try {
+
+                // Lyssnar på anslutning från klienten och accepterar anslutningen
+                System.out.println("Waiting for connect request...");
+                client = server.accept();
+
+                // Hämta host address hos klienten samt klient porten
+                System.out.println("Connect request is accepted...");
+                String clientHost = client.getInetAddress().getHostAddress();
+                int clientPort = client.getPort();
+                System.out.println("Client host = " + clientHost + " Client port = " + clientPort);
+
+                // Läs data from klienten
+                InputStream clientIn = client.getInputStream();
+                BufferedReader br = new BufferedReader(new
+                        InputStreamReader(clientIn));
+                String msgFromClient = br.readLine();
+                System.out.println("Message received from client = " + msgFromClient);
+
+                // Skicka svarsmedelande till klienten
+                if (msgFromClient != null && !msgFromClient.equalsIgnoreCase("bye")) {
+                    OutputStream clientOut = client.getOutputStream();
+                    PrintWriter pw = new PrintWriter(clientOut, true);
+                    String ansMsg = "Hello, " + msgFromClient;
+                    pw.println(ansMsg);
+                }
+
+                // Avsluta alla sockets
+                if (msgFromClient != null && msgFromClient.equalsIgnoreCase("bye")) {
+                    server.close();
+                    client.close();
+                    break;
+                }
+
+            } catch (IOException ie) {
+            }
+        }
     }
 }
